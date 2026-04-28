@@ -1,0 +1,262 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+
+.container { padding: 1.5rem 0; }
+
+.search-bar {
+  width: 100%;
+  padding: 10px 16px;
+  font-size: 14px;
+  border: 0.5px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-lg);
+  background: var(--color-background-primary);
+  color: var(--color-text-primary);
+  margin-bottom: 1rem;
+}
+.search-bar:focus { outline: none; border-color: var(--color-border-primary); }
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 1.5rem;
+}
+
+.filter-btn {
+  padding: 5px 14px;
+  font-size: 12px;
+  border-radius: 20px;
+  border: 0.5px solid var(--color-border-secondary);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: var(--font-sans);
+}
+.filter-btn:hover { background: var(--color-background-secondary); }
+.filter-btn.active { border-color: transparent; color: #fff; }
+.filter-btn.active[data-cat="all"] { background: #2C2C2A; }
+.filter-btn.active[data-cat="ux"] { background: #185FA5; }
+.filter-btn.active[data-cat="methodo"] { background: #0F6E56; }
+.filter-btn.active[data-cat="figma-base"] { background: #533AB7; }
+.filter-btn.active[data-cat="figma-adv"] { background: #993556; }
+.filter-btn.active[data-cat="research"] { background: #BA7517; }
+.filter-btn.active[data-cat="access"] { background: #A32D2D; }
+
+.count {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+  margin-bottom: 1rem;
+}
+
+.terms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 10px;
+}
+
+.term-card {
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  padding: 14px 16px;
+  transition: border-color 0.15s;
+}
+.term-card:hover { border-color: var(--color-border-secondary); }
+
+.term-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.term-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  line-height: 1.3;
+}
+
+.term-en {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  margin-top: 2px;
+  font-style: italic;
+}
+
+.badge {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-weight: 500;
+}
+.badge-ux { background: #E6F1FB; color: #0C447C; }
+.badge-methodo { background: #E1F5EE; color: #085041; }
+.badge-figma-base { background: #EEEDFE; color: #3C3489; }
+.badge-figma-adv { background: #FBEAF0; color: #72243E; }
+.badge-research { background: #FAEEDA; color: #633806; }
+.badge-access { background: #FCEBEB; color: #791F1F; }
+
+.term-def {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.no-results {
+  text-align: center;
+  padding: 3rem;
+  color: var(--color-text-tertiary);
+  font-size: 14px;
+}
+</style>
+
+<div class="container">
+  <h2 class="sr-only">Glossaire Product Design — termes essentiels pour un entretien</h2>
+  <input class="search-bar" type="text" id="search" placeholder="Rechercher un terme..." />
+  <div class="filters" id="filters">
+    <button class="filter-btn active" data-cat="all">Tous</button>
+    <button class="filter-btn" data-cat="ux">UX / UI</button>
+    <button class="filter-btn" data-cat="methodo">Méthodologies</button>
+    <button class="filter-btn" data-cat="figma-base">Figma — bases</button>
+    <button class="filter-btn" data-cat="figma-adv">Figma — avancé</button>
+    <button class="filter-btn" data-cat="research">Recherche utilisateur</button>
+    <button class="filter-btn" data-cat="access">Accessibilité</button>
+  </div>
+  <p class="count" id="count"></p>
+  <div class="terms-grid" id="grid"></div>
+</div>
+
+<script>
+const terms = [
+  { cat: "ux", name: "UX (User Experience)", en: "User Experience", def: "Ensemble des émotions, perceptions et réactions d'un utilisateur lors de l'interaction avec un produit. L'UX englobe l'utilisabilité, l'accessibilité et le plaisir d'utilisation." },
+  { cat: "ux", name: "UI (User Interface)", en: "User Interface", def: "Partie visuelle et interactive d'un produit numérique : boutons, typographies, couleurs, icônes. L'UI est la couche que l'utilisateur voit et touche directement." },
+  { cat: "ux", name: "Wireframe", def: "Maquette filaire basse fidélité représentant la structure d'un écran sans couleurs ni détails visuels. Sert à valider l'architecture et les flux avant de passer au design." },
+  { cat: "ux", name: "Prototype", def: "Version simulée et interactive d'un produit. Peut être basse ou haute fidélité. Permet de tester des interactions sans développer de code." },
+  { cat: "ux", name: "Design System", def: "Bibliothèque centralisée de composants, styles, règles et guidelines partagés entre les équipes design et développement pour assurer la cohérence du produit." },
+  { cat: "ux", name: "User Flow", def: "Représentation visuelle du chemin emprunté par un utilisateur pour accomplir une tâche précise dans le produit (ex : créer un compte, partager une donnée)." },
+  { cat: "ux", name: "Parcours utilisateur", en: "User Journey", def: "Représentation chronologique de toutes les étapes et points de contact d'un utilisateur avec un produit ou service, de la découverte à l'abandon." },
+  { cat: "ux", name: "Architecture de l'information", en: "Information Architecture (IA)", def: "Organisation, étiquetage et structuration du contenu d'un produit pour en faciliter la navigation et la compréhension." },
+  { cat: "ux", name: "Hiérarchie visuelle", en: "Visual Hierarchy", def: "Organisation des éléments visuels par ordre d'importance (taille, couleur, contraste, espacement) pour guider le regard de l'utilisateur." },
+  { cat: "ux", name: "Affordance", def: "Propriété d'un élément UI qui suggère naturellement comment l'utiliser. Un bouton en relief suggère qu'on peut le cliquer." },
+  { cat: "ux", name: "Microinteraction", def: "Animation ou retour visuel subtil déclenché par une action précise (ex : animation lors d'un like, vibration d'un champ invalide). Renforce le feedback et le plaisir d'utilisation." },
+  { cat: "ux", name: "Onboarding", def: "Processus d'accueil et d'introduction d'un nouvel utilisateur dans le produit. Inclut les tutoriels, les écrans de bienvenue et la mise en contexte des fonctionnalités." },
+  { cat: "ux", name: "CTA (Call to Action)", def: "Élément visuel (bouton, lien) incitant l'utilisateur à effectuer une action précise : s'inscrire, partager des données, télécharger un rapport." },
+  { cat: "ux", name: "Responsive Design", def: "Approche de conception qui adapte automatiquement la mise en page à la taille de l'écran (mobile, tablette, desktop)." },
+  { cat: "ux", name: "Mobile First", def: "Philosophie de conception qui part de l'expérience mobile comme base, puis enrichit progressivement vers les grands écrans." },
+  { cat: "ux", name: "Grille (Grid)", def: "Système de colonnes et de gouttières qui structure la mise en page et garantit l'alignement cohérent des éléments à l'écran." },
+  { cat: "ux", name: "Handoff", def: "Processus de transmission des fichiers design aux développeurs, avec toutes les spécifications (espacements, couleurs, comportements) nécessaires à l'intégration." },
+  { cat: "ux", name: "Pain Point", def: "Point de friction ou de frustration ressenti par l'utilisateur lors de son parcours. Identifier les pain points est au cœur du travail de product design." },
+  { cat: "ux", name: "Dashboard", def: "Interface de visualisation centralisée regroupant des indicateurs et données clés. Très courant dans des produits B2B comme OpenClimat." },
+
+  { cat: "methodo", name: "Design Thinking", def: "Méthodologie centrée sur l'utilisateur qui structure la résolution de problèmes en 5 étapes : Empathie, Définition, Idéation, Prototypage, Test." },
+  { cat: "methodo", name: "Atomic Design", def: "Méthodologie de Brad Frost qui décompose les interfaces en 5 niveaux : Atomes (bouton, icône) → Molécules → Organismes → Templates → Pages." },
+  { cat: "methodo", name: "Double Diamant", en: "Double Diamond", def: "Modèle de processus design en 4 phases : Découverte (explorer le problème), Définition (cibler), Développement (idéer), Livraison (tester et affiner)." },
+  { cat: "methodo", name: "Design Sprint", def: "Framework Google Ventures de 5 jours pour concevoir, prototyper et tester rapidement une solution à un problème clé avec les parties prenantes." },
+  { cat: "methodo", name: "Agile / Scrum", def: "Méthode de développement itérative organisée en sprints. Le designer collabore en continu avec les équipes produit et dev, livrant des designs à chaque itération." },
+  { cat: "methodo", name: "MVP (Minimum Viable Product)", def: "Version minimale d'un produit avec juste assez de fonctionnalités pour être testée par de vrais utilisateurs et valider des hypothèses produit." },
+  { cat: "methodo", name: "Heuristiques de Nielsen", def: "10 principes d'utilisabilité définis par Jakob Nielsen (visibilité de l'état du système, correspondance avec le monde réel, liberté de navigation…) servant de guide d'évaluation." },
+  { cat: "methodo", name: "Jobs To Be Done (JTBD)", def: "Cadre d'analyse qui se concentre sur la tâche qu'un utilisateur cherche à accomplir plutôt que sur ses caractéristiques démographiques." },
+  { cat: "methodo", name: "Itération", en: "Iteration", def: "Cycle de conception consistant à améliorer progressivement un design à chaque boucle, basé sur les retours utilisateurs et les tests." },
+  { cat: "methodo", name: "KPI (Key Performance Indicator)", def: "Indicateurs clés de performance permettant de mesurer l'impact du design : taux de conversion, taux d'abandon, temps sur tâche, NPS…" },
+
+  { cat: "figma-base", name: "Frame", def: "Conteneur principal dans Figma, équivalent d'un écran ou d'une section. Les frames définissent les dimensions et peuvent avoir des propriétés d'auto layout, de grille et de clip content." },
+  { cat: "figma-base", name: "Composant", en: "Component", def: "Élément UI réutilisable dans Figma. Toute modification du composant maître (main component) se répercute automatiquement sur toutes ses instances dans le fichier." },
+  { cat: "figma-base", name: "Instance", def: "Copie d'un composant maître. Une instance hérite des propriétés du maître mais peut avoir des overrides locaux (texte, couleur, icône) sans rompre le lien." },
+  { cat: "figma-base", name: "Override", def: "Modification locale appliquée à une instance d'un composant sans altérer le composant maître. Permet de personnaliser un bouton tout en restant lié au design system." },
+  { cat: "figma-base", name: "Styles", def: "Valeurs réutilisables dans Figma pour les couleurs, typographies, effets et grilles. Modifier un style global met à jour tous les éléments qui l'utilisent." },
+  { cat: "figma-base", name: "Contraintes", en: "Constraints", def: "Règles définissant comment un élément se repositionne ou se redimensionne lorsque son conteneur change de taille (ex : fixé à droite, centré, stretch)." },
+  { cat: "figma-base", name: "Groupes", en: "Groups", def: "Regroupement d'éléments pour les déplacer ou redimensionner ensemble. Moins puissants que les frames car ils n'ont pas de dimensions propres ni d'auto layout." },
+  { cat: "figma-base", name: "Opérations booléennes", en: "Boolean Operations", def: "Combinaisons de formes par union, soustraction, intersection ou exclusion pour créer des formes complexes (très utile pour les icônes)." },
+  { cat: "figma-base", name: "Clip content", def: "Propriété d'une frame qui masque tout contenu dépassant ses bords. Équivalent du overflow: hidden en CSS." },
+
+  { cat: "figma-adv", name: "Auto Layout", def: "Système Figma qui organise automatiquement les éléments en ligne ou en colonne avec espacements, padding et alignements. Équivalent visuel de Flexbox en CSS." },
+  { cat: "figma-adv", name: "Variantes", en: "Variants", def: "Système de Figma permettant de regrouper plusieurs états d'un composant (ex : bouton primary/secondary, état default/hover/disabled) en un seul composant multi-états." },
+  { cat: "figma-adv", name: "Propriétés de composant", en: "Component Properties", def: "Propriétés exposées d'un composant permettant de modifier son texte, ses booléens (afficher/cacher), ses variantes ou d'échanger une icône directement depuis le panneau de droite." },
+  { cat: "figma-adv", name: "Variables Figma", en: "Figma Variables", def: "Système de tokens de design stockés dans Figma (couleurs, nombres, textes, booléens). Permettent la gestion de thèmes (light/dark) et le passage fluide des valeurs aux développeurs." },
+  { cat: "figma-adv", name: "Modes", en: "Modes (Variables)", def: "Dans Figma, les modes permettent de basculer entre plusieurs jeux de valeurs pour un même ensemble de variables (ex : mode Light et mode Dark)." },
+  { cat: "figma-adv", name: "Smart Animate", def: "Option de transition Figma qui détecte automatiquement les différences entre deux frames et anime les propriétés communes (position, taille, opacité) pour créer des animations fluides." },
+  { cat: "figma-adv", name: "Prototype Figma", en: "Prototyping", def: "Mode de Figma permettant de relier des frames avec des interactions (clic, survol, glissement) pour simuler la navigation dans le produit sans code." },
+  { cat: "figma-adv", name: "Overlay", def: "Dans le mode prototype de Figma, un overlay affiche une frame par-dessus l'écran courant (ex : modale, tooltip) sans changer de page." },
+  { cat: "figma-adv", name: "Dev Mode", def: "Mode de Figma dédié aux développeurs pour inspecter les propriétés CSS, les mesures, les tokens de design et accéder aux assets exportables." },
+  { cat: "figma-adv", name: "Tokens de design", en: "Design Tokens", def: "Valeurs nommées qui encapsulent les décisions de design (couleurs, espacements, typographies). Permettent de synchroniser le design et le code via des systèmes comme Style Dictionary." },
+  { cat: "figma-adv", name: "FigJam", def: "Outil de tableau blanc collaboratif d'Atlassian/Figma intégré à l'écosystème. Utilisé pour les ateliers, les cartographies de parcours et les brainstormings d'équipe." },
+  { cat: "figma-adv", name: "Grille de mise en page", en: "Layout Grid", def: "Superposition de grilles (colonnes, rangées, grille uniforme) dans une frame Figma pour aligner les éléments de façon cohérente selon les breakpoints." },
+
+  { cat: "research", name: "Persona", def: "Profil fictif représentatif d'un segment d'utilisateurs réels, construit à partir de données de recherche. Guide les décisions de design en donnant un visage aux utilisateurs cibles." },
+  { cat: "research", name: "Test utilisateur", en: "Usability Testing", def: "Méthode de validation où de vrais utilisateurs accomplissent des tâches sur le produit pendant qu'un modérateur observe et note les difficultés rencontrées." },
+  { cat: "research", name: "A/B Testing", def: "Expérience qui compare deux versions d'une interface auprès de deux groupes d'utilisateurs pour déterminer statistiquement laquelle performe mieux." },
+  { cat: "research", name: "Card Sorting", def: "Méthode de recherche où les utilisateurs classent des contenus en groupes pour révéler leur modèle mental et guider l'architecture de l'information." },
+  { cat: "research", name: "Entretien utilisateur", en: "User Interview", def: "Conversation structurée ou semi-structurée avec un utilisateur pour comprendre ses besoins, motivations et frustrations en profondeur." },
+  { cat: "research", name: "NPS (Net Promoter Score)", def: "Indicateur de satisfaction mesurant la probabilité qu'un utilisateur recommande le produit. Score de -100 à +100." },
+  { cat: "research", name: "Analyse heuristique", en: "Heuristic Evaluation", def: "Évaluation expert d'une interface selon des principes d'utilisabilité établis (heuristiques de Nielsen) sans impliquer d'utilisateurs réels." },
+  { cat: "research", name: "Benchmark concurrentiel", en: "Competitive Analysis", def: "Analyse comparative des interfaces et fonctionnalités des produits concurrents ou analogues pour identifier les standards du marché et les opportunités de différenciation." },
+  { cat: "research", name: "Carte d'empathie", en: "Empathy Map", def: "Outil visuel structurant ce que l'utilisateur dit, pense, fait et ressent. Aide l'équipe à développer une compréhension partagée des utilisateurs." },
+
+  { cat: "access", name: "Accessibilité (a11y)", def: "Conception inclusive garantissant que le produit est utilisable par tous, y compris les personnes en situation de handicap (visuel, moteur, cognitif, auditif)." },
+  { cat: "access", name: "WCAG", def: "Web Content Accessibility Guidelines — standards internationaux d'accessibilité web. Les niveaux A, AA et AAA définissent les critères à respecter (contraste, taille de texte, navigation clavier…)." },
+  { cat: "access", name: "Ratio de contraste", en: "Contrast Ratio", def: "Mesure de la lisibilité entre la couleur du texte et son fond. WCAG AA exige 4.5:1 pour le texte normal et 3:1 pour le texte large." },
+  { cat: "access", name: "ARIA", def: "Accessible Rich Internet Applications — ensemble d'attributs HTML qui ajoutent une sémantique aux composants interactifs pour les technologies d'assistance (lecteurs d'écran)." },
+];
+
+const catLabels = {
+  ux: "UX / UI", methodo: "Méthodologies",
+  "figma-base": "Figma — bases", "figma-adv": "Figma — avancé",
+  research: "Recherche", access: "Accessibilité"
+};
+
+let activeFilter = "all";
+let searchQuery = "";
+
+function render() {
+  const filtered = terms.filter(t => {
+    const matchesCat = activeFilter === "all" || t.cat === activeFilter;
+    const q = searchQuery.toLowerCase();
+    const matchesSearch = !q || t.name.toLowerCase().includes(q) || t.def.toLowerCase().includes(q) || (t.en && t.en.toLowerCase().includes(q));
+    return matchesCat && matchesSearch;
+  });
+
+  document.getElementById("count").textContent = filtered.length + " terme" + (filtered.length > 1 ? "s" : "");
+
+  const grid = document.getElementById("grid");
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div class="no-results">Aucun terme trouvé.</div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(t => `
+    <div class="term-card">
+      <div class="term-header">
+        <div>
+          <div class="term-name">${t.name}</div>
+          ${t.en ? `<div class="term-en">${t.en}</div>` : ""}
+        </div>
+        <span class="badge badge-${t.cat}">${catLabels[t.cat]}</span>
+      </div>
+      <div class="term-def">${t.def}</div>
+    </div>
+  `).join("");
+}
+
+document.getElementById("search").addEventListener("input", e => {
+  searchQuery = e.target.value;
+  render();
+});
+
+document.getElementById("filters").addEventListener("click", e => {
+  const btn = e.target.closest(".filter-btn");
+  if (!btn) return;
+  activeFilter = btn.dataset.cat;
+  document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  render();
+});
+
+render();
+</script>
